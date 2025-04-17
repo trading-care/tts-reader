@@ -21,7 +21,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload pages artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           path: .  # thư mục chứa index.html
 
