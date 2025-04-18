@@ -1,241 +1,42 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-    
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#0088cc" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.png" />
+  <title>TTS Reader</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 16px;
+      background: #f5f5f5;
+      color: #333;
+    }
+    .sentence {
+      padding: 8px;
+      margin: 4px 0;
+      border-radius: 6px;
+      transition: background 0.3s;
+    }
+    .highlight {
+      background: #cce5ff;
+    }
+    button {
+      padding: 10px 16px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔊 TTS Reader</h1>
+  <div>
+    <button id="startButton">▶️ Bắt đầu đọc</button>
+    <button id="pauseButton">⏸️ Tạm dừng</button>
+    <button id="resumeButton">⏯️ Tiếp tục</button>
+  </div>
+  <div id="textDisplay" style="margin-top: 20px;"></div>
 
-    <style>
-      body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
-      #controls { margin-top: 10px; }
-      #controls input, select { margin-right: 10px; margin-top: 5px; }
-      #textDisplay { margin-top: 20px; font-size: 18px; color: #333; }
-      .highlight {
-        background-color: yellow;
-      }
-    </style>
-    <script>
-      let lastSpokenText = '';
-      let intervalId;
-      let updateInterval = 60000;
-
-      function loadVoices() {
-        const voices = speechSynthesis.getVoices();
-        const viVoices = voices.filter(voice => voice.lang.startsWith('vi'));
-        const select = document.getElementById("voiceSelect");
-        select.innerHTML = "";
-
-        if (viVoices.length === 0) {
-          alert(`
-⚠️ Không tìm thấy giọng đọc tiếng Việt.
-
-👉 Cách khắc phục:
-1. Vào cài đặt trình duyệt và thêm ngôn ngữ "Tiếng Việt".
-2. Với Chrome: bật "Experimental Web Platform features" tại chrome://flags.
-3. Với Android: Cài đặt > Ngôn ngữ & nhập liệu > Văn bản thành giọng nói > tải giọng tiếng Việt.
-4. Với macOS: System Settings > Accessibility > Spoken Content > Add Voice.
-
-Sau đó tải lại trang (F5).
-          `);
-          const option = document.createElement("option");
-          option.value = "";
-          option.text = "❌ Không có giọng tiếng Việt";
-          select.appendChild(option);
-          return;
-        }
-
-        viVoices.forEach((voice) => {
-          const option = document.createElement("option");
-          option.value = voice.name;
-          option.text = `${voice.name} (${voice.lang})`;
-          select.appendChild(option);
-        });
-      }
-
-      function fetchTextAndSpeak() {
-            fetch("https://script.google.com/macros/s/AKfycbwCoM2yQ4P9HnkOtOZjSyIzdGXbO21WeN_fzZgLUu9GvXwVzxuA6Zbl5NlpmmThEhYCJw/exec")  // Thay bằng link Web App của bạn
-                .then(res => res.json())
-                .then(data => {
-                    const displayText = data.displayText;
-                    const readText = data.readText;
-
-                    // Hiển thị phần displayText lên giao diện
-                    highlightText(displayText, -1);
-
-                    // Nếu có sự thay đổi văn bản cần đọc
-                    if (readText && readText !== lastSpokenText) {
-                        lastSpokenText = readText;
-                        speakText(readText, displayText);
-                    }
-                })
-                .catch(err => {
-                    console.error("Lỗi khi gọi API:", err);
-                });
-      }
-
-      function speakText(text, displayText) {
-        if ('speechSynthesis' in window) {
-          const sentences = text.split(/[\n]/).map(s => s.trim()).filter(Boolean);
-          const voices = speechSynthesis.getVoices();
-          const voice = voices.find(v => v.name === document.getElementById("voiceSelect").value);
-          const rate = parseFloat(document.getElementById("rateInput").value);
-          const pitch = parseFloat(document.getElementById("pitchInput").value);
-          const volume = parseFloat(document.getElementById("volumeInput").value);
-
-          let index = 0;
-
-          function speakNext() {
-            if (index < sentences.length) {
-              const utterance = new SpeechSynthesisUtterance(sentences[index]);
-              utterance.voice = voice;
-              utterance.lang = 'vi-VN';
-              utterance.rate = rate;
-              utterance.pitch = pitch;
-              utterance.volume = volume;
-
-              highlightText(displayText, index);
-            
-              utterance.onend = function () {
-                index++;
-                speakNext(); // gọi tiếp sau khi hoàn thành câu hiện tại
-              };
-
-              speechSynthesis.speak(utterance);
-            } else {
-                highlightText(displayText, -1); // ❌ Tắt highlight khi đọc xong
-                google.script.run.logReadText(text); // Lưu lịch sử
-            }
-          }
-
-          speakNext();
-        }
-      }
-
-      document.addEventListener("DOMContentLoaded", () => {
-        const volumeSlider = document.getElementById("volumeInput");
-        const volumeLabel = document.getElementById("volumeValue");
-        volumeSlider.addEventListener("input", () => {
-          volumeLabel.textContent = volumeSlider.value;
-        });
-      });
-
-      function highlightText(text, highlightIndex) {
-        const textDisplayElement = document.getElementById("textDisplay");
-        const sentences = text.split(/[\n]/).map(s => s.trim()).filter(Boolean);
-        let result = "";
-
-        sentences.forEach((sentence, index) => {
-          if (index === highlightIndex) {
-            result += `<div><span class="highlight">${sentence}</span></div>`;
-          } else {
-            result += `<div>${sentence}</div>`;
-          }
-        });
-
-        textDisplayElement.innerHTML = result.trim();
-      }
-
-      function stopSpeaking() {
-        if ('speechSynthesis' in window) {
-          speechSynthesis.cancel();
-        }
-      }
-
-      function startAutoRead() {
-        clearInterval(intervalId);
-        intervalId = setInterval(fetchTextAndSpeak, updateInterval);
-      }
-
-      function updateIntervalTime() {
-        const newInterval = parseInt(document.getElementById("intervalInput").value);
-        if (!isNaN(newInterval) && newInterval >= 5) {
-          updateInterval = newInterval * 1000;
-          startAutoRead();
-        } else {
-          alert("Vui lòng nhập số giây hợp lệ (tối thiểu 5 giây)");
-        }
-      }
-
-      function setupVoiceControl() {
-        if (!('webkitSpeechRecognition' in window)) {
-          alert("⚠️ Trình duyệt không hỗ trợ voice command.");
-          return;
-        }
-
-        const recognition = new webkitSpeechRecognition();
-        recognition.lang = 'vi-VN';
-        recognition.continuous = true;
-        recognition.interimResults = false;
-
-        recognition.onresult = function(event) {
-          const command = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-          console.log("Lệnh giọng nói:", command);
-          if (command.includes("đọc lại")) fetchTextAndSpeak();
-          else if (command.includes("tạm dừng")) stopSpeaking();
-          else if (command.includes("tiếp tục")) fetchTextAndSpeak();
-          else if (command.includes("tăng âm lượng")) changeVolume(0.1);
-          else if (command.includes("giảm âm lượng")) changeVolume(-0.1);
-        };
-
-        recognition.onerror = function(event) {
-          console.error("Voice recognition error:", event.error);
-          if (event.error === 'not-allowed') {
-            alert("❌ Trình duyệt đã chặn quyền sử dụng microphone.\n\n👉 Hãy kiểm tra quyền microphone trong trình duyệt và bật lại.");
-          }
-        };
-
-        recognition.start();
-      }
-
-      function changeVolume(step) {
-        const volumeSlider = document.getElementById("volumeInput");
-        let volume = parseFloat(volumeSlider.value);
-        volume = Math.min(1, Math.max(0, volume + step));
-        volumeSlider.value = volume.toFixed(1);
-        document.getElementById("volumeValue").textContent = volume.toFixed(1);
-      }
-
-      window.onload = () => {
-        loadVoices();
-        fetchTextAndSpeak();
-        startAutoRead();
-        setupVoiceControl();
-      };
-
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    </script>
-  </head>
-
-  <body>
-    <h2>📢</h2>
-    <div id="controls">
-      <button onclick="fetchTextAndSpeak()">🔁 Đọc lại</button>
-      <button onclick="stopSpeaking()">⏹️ Tạm dừng</button><br><br>
-
-      <label>🎤 Giọng đọc:</label>
-      <select id="voiceSelect"></select><br>
-
-      <label>⏩ Tốc độ đọc:</label>
-      <input type="number" id="rateInput" value="1" step="0.1" min="0.5" max="2" style="width: 30px;"><br>
-
-      <label>🎚️ Cao độ:</label>
-      <input type="number" id="pitchInput" value="1" step="0.1" min="0" max="2" style="width: 30px;"><br>
-
-      <label>🔊 Âm lượng:</label>
-      <button onclick="changeVolume(-0.1)">🔉</button>
-      <input type="range" id="volumeInput" min="0" max="1" step="0.1" value="0.7">
-      <button onclick="changeVolume(0.1)">🔊</button>
-      <span id="volumeValue">0.7</span><br><br>
-
-      <label>🔄 Kiểm tra dữ liệu mới sau:</label>
-      <input type="number" id="intervalInput" value="60" min="5" style="width: 30px;"/>
-      <span>(giây)</span>
-      <button onclick="updateIntervalTime()">  ⏱️ Cập nhật</button>
-    </div>
-
-    <div id="textDisplay">Chưa có nội dung để đọc...</div><br><br>
-    <p>Hãy nói: <em><b>'đọc lại', 'tạm dừng', 'tiếp tục', 'tăng âm lượng', 'giảm âm lượng'</b></em> để điều khiển bằng giọng nói!</p>
-  </body>
+  <script src="script.js"></script>
+</body>
 </html>
