@@ -139,7 +139,11 @@ Sau đó tải lại trang (F5).
 
       function stopSpeaking() {
         if ('speechSynthesis' in window) {
+          console.log("Speech supported:", 'speechSynthesis' in window);
+          console.log("Voices:", speechSynthesis.getVoices());
+
           speechSynthesis.cancel();
+          speakText(currentSentence);
         }
       }
 
@@ -236,6 +240,6 @@ Sau đó tải lại trang (F5).
     </div>
 
     <div id="textDisplay">Chưa có nội dung để đọc...</div><br><br>
-    <p>Hãy nói: <em><b>'đọc lại', 'tạm dừng', 'tiếp tục', 'tăng âm lượng', 'giảm âm lượng'</b></em> để điều khiển bằng giọng nói!</p>
+    <!-- <p>Hãy nói: <em><b>'đọc lại', 'tạm dừng', 'tiếp tục', 'tăng âm lượng', 'giảm âm lượng'</b></em> để điều khiển bằng giọng nói!</p> -->
   </body>
 </html>
