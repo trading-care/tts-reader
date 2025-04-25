@@ -7,31 +7,8 @@
     <meta name="theme-color" content="#0088cc" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-    <audio id="introAudio" src="https://github.com/trading-care/tts-reader/blob/main/casual-click.mp3?raw=true" preload="auto"></audio>
-
     <style>
-      body { font-family: sans-serif, 'Segoe UI', Tahoma, Geneva, Verdana; padding: 20px; max-width: 600px; margin: auto; }
-      
-      .logo {
-        width: 100px;
-        margin-bottom: 20px;
-      }
-
-      .button {
-        padding: 12px 24px;
-        font-size: 1.2em;
-        background-color: #0088cc;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        margin-top: 20px;
-      }
-
-      .button:hover {
-        background-color: #0077b3;
-      }
-
+      body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
       #controls { margin-top: 10px; }
       #controls input, select { margin-right: 10px; margin-top: 5px; }
       #textDisplay { margin-top: 20px; font-size: 18px; color: #333; }
@@ -78,19 +55,24 @@ Sau đó tải lại trang (F5).
       }
 
       function fetchTextAndSpeak() {
-        google.script.run.withSuccessHandler(function (data) {
-          const displayText = data.displayText;
-          const readText = data.readText;
+            fetch("https://script.google.com/macros/s/AKfycbwCoM2yQ4P9HnkOtOZjSyIzdGXbO21WeN_fzZgLUu9GvXwVzxuA6Zbl5NlpmmThEhYCJw/exec")  // Thay bằng link Web App của bạn
+                .then(res => res.json())
+                .then(data => {
+                    const displayText = data.displayText;
+                    const readText = data.readText;
 
-          // Hiển thị phần displayText lên giao diện
-          highlightText(displayText, -1);
+                    // Hiển thị phần displayText lên giao diện
+                    highlightText(displayText, -1);
 
-          // Nếu có sự thay đổi văn bản cần đọc
-          if (readText && readText !== lastSpokenText) {
-            lastSpokenText = readText;
-            speakText(readText, displayText);
-          }
-        }).getLatestTextRate();
+                    // Nếu có sự thay đổi văn bản cần đọc
+                    if (readText && readText !== lastSpokenText) {
+                        lastSpokenText = readText;
+                        speakText(readText, displayText);
+                    }
+                })
+                .catch(err => {
+                    console.error("Lỗi khi gọi API:", err);
+                });
       }
 
       function speakText(text, displayText) {
@@ -123,7 +105,7 @@ Sau đó tải lại trang (F5).
               speechSynthesis.speak(utterance);
             } else {
                 highlightText(displayText, -1); // ❌ Tắt highlight khi đọc xong
-                google.script.run.logReadText(text); // Lưu lịch sử
+                //google.script.run.logReadText(text); // Lưu lịch sử
             }
           }
 
@@ -215,51 +197,10 @@ Sau đó tải lại trang (F5).
         document.getElementById("volumeValue").textContent = volume.toFixed(1);
       }
 
-      // Kích hoạt audio nếu bị chặn bởi autoplay policy
-      function tryPlayAudio() {
-        const audio = document.getElementById("introAudio");
-
-        // Cho phép phát audio trên thiết bị cảm ứng (iOS/Android)
-        document.addEventListener("touchstart", () => {
-          audio.play().catch(err => {
-            console.log("Autoplay bị chặn sau touchstart:", err);
-          });
-        }, { once: true });
-
-        // Cho phép phát audio trên desktop (click)
-        document.addEventListener("click", () => {
-          if (audio.paused) {
-            audio.play().catch(err => {
-              console.log("Autoplay bị chặn sau click:", err);
-            });
-          }
-        }, { once: true });
-
-        // Thử phát ngay lập tức
-        audio.play().catch(() => {
-          console.log("Autoplay bị chặn. Chờ tương tác từ người dùng...");
-        });
-      }
-
-      // Gọi thử phát audio khi load xong
-      window.addEventListener("DOMContentLoaded", tryPlayAudio);
-
-      function startReading() {
-        const audio = document.getElementById("introAudio");
-        if (audio.paused) {
-          audio.play().catch(err => console.log("Không thể phát intro:", err));
-        }
-        // Chuyển đến app chính (có thể đổi đường dẫn tuỳ ý)
-        //window.location.href = "index.html";
-        
-        fetchTextAndSpeak();
-        startAutoRead();
-      }
-
       window.onload = () => {
         loadVoices();
-        // fetchTextAndSpeak();
-        // startAutoRead();
+        fetchTextAndSpeak();
+        startAutoRead();
         setupVoiceControl();
       };
 
@@ -268,12 +209,8 @@ Sau đó tải lại trang (F5).
   </head>
 
   <body>
-    <h2></h2>
+    <h2>📢</h2>
     <div id="controls">
-      <img src="https://github.com/trading-care/tts-reader/blob/main/icons/icon-192.png?raw=true" alt="App Logo" class="logo"/>
-      <h1>Text Reader!</h1>
-      <p>Nhấn vào nút 📢 Bắt đầu để đọc.</p>
-      <button onclick="startReading()">📢 Bắt đầu</button>
       <button onclick="fetchTextAndSpeak()">🔁 Đọc lại</button>
       <button onclick="stopSpeaking()">⏹️ Tạm dừng</button><br><br>
 
@@ -299,6 +236,6 @@ Sau đó tải lại trang (F5).
     </div>
 
     <div id="textDisplay">Chưa có nội dung để đọc...</div><br><br>
-    <p>Hãy nói: <em><b>'đọc lại', 'tạm dừng', 'tiếp tục', 'tăng âm lượng', 'giảm âm lượng'</b></em> để điều khiển bằng giọng nói!</p>
+    <!-- <p>Hãy nói: <em><b>'đọc lại', 'tạm dừng', 'tiếp tục', 'tăng âm lượng', 'giảm âm lượng'</b></em> để điều khiển bằng giọng nói!</p> -->
   </body>
 </html>
