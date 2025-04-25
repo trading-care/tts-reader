@@ -247,7 +247,7 @@ Sau đó tải lại trang (F5).
       }
 
       // Gọi thử phát audio khi load xong
-      window.addEventListener("DOMContentLoaded", tryPlayAudio);
+      //window.addEventListener("DOMContentLoaded", tryPlayAudio);
 
       function startReading() {
         const audio = document.getElementById("introAudio");
@@ -266,7 +266,6 @@ Sau đó tải lại trang (F5).
         setupVoiceControl();
         // fetchTextAndSpeak();
         // startAutoRead();
-        startReading();
       };
 
       window.speechSynthesis.onvoiceschanged = loadVoices;
