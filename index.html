@@ -78,19 +78,24 @@ Sau đó tải lại trang (F5).
       }
 
       function fetchTextAndSpeak() {
-        google.script.run.withSuccessHandler(function (data) {
-          const displayText = data.displayText;
-          const readText = data.readText;
+            fetch("https://script.google.com/macros/s/AKfycbwCoM2yQ4P9HnkOtOZjSyIzdGXbO21WeN_fzZgLUu9GvXwVzxuA6Zbl5NlpmmThEhYCJw/exec")  // Thay bằng link Web App của bạn
+                .then(res => res.json())
+                .then(data => {
+                    const displayText = data.displayText;
+                    const readText = data.readText;
 
-          // Hiển thị phần displayText lên giao diện
-          highlightText(displayText, -1);
+                    // Hiển thị phần displayText lên giao diện
+                    highlightText(displayText, -1);
 
-          // Nếu có sự thay đổi văn bản cần đọc
-          if (readText && readText !== lastSpokenText) {
-            lastSpokenText = readText;
-            speakText(readText, displayText);
-          }
-        }).getLatestTextRate();
+                    // Nếu có sự thay đổi văn bản cần đọc
+                    if (readText && readText !== lastSpokenText) {
+                        lastSpokenText = readText;
+                        speakText(readText, displayText);
+                    }
+                })
+                .catch(err => {
+                    console.error("Lỗi khi gọi API:", err);
+                });
       }
 
       function speakText(text, displayText) {
