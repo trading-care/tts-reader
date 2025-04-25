@@ -128,7 +128,7 @@ Sau đó tải lại trang (F5).
               speechSynthesis.speak(utterance);
             } else {
                 highlightText(displayText, -1); // ❌ Tắt highlight khi đọc xong
-                google.script.run.logReadText(text); // Lưu lịch sử
+                //google.script.run.logReadText(text); // Lưu lịch sử
             }
           }
 
@@ -263,9 +263,9 @@ Sau đó tải lại trang (F5).
 
       window.onload = () => {
         loadVoices();
+        setupVoiceControl();
         // fetchTextAndSpeak();
         // startAutoRead();
-        setupVoiceControl();
       };
 
       window.speechSynthesis.onvoiceschanged = loadVoices;
@@ -304,6 +304,6 @@ Sau đó tải lại trang (F5).
     </div>
 
     <div id="textDisplay">Chưa có nội dung để đọc...</div><br><br>
-    <p>Hãy nói: <em><b>'đọc lại', 'tạm dừng', 'tiếp tục', 'tăng âm lượng', 'giảm âm lượng'</b></em> để điều khiển bằng giọng nói!</p>
+    <!-- <p>Hãy nói: <em><b>'đọc lại', 'tạm dừng', 'tiếp tục', 'tăng âm lượng', 'giảm âm lượng'</b></em> để điều khiển bằng giọng nói!</p> -->
   </body>
 </html>
