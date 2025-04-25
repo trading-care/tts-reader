@@ -247,7 +247,7 @@ Sau đó tải lại trang (F5).
       }
 
       // Gọi thử phát audio khi load xong
-      //window.addEventListener("DOMContentLoaded", tryPlayAudio);
+      window.addEventListener("DOMContentLoaded", tryPlayAudio);
 
       function startReading() {
         const audio = document.getElementById("introAudio");
@@ -269,6 +269,12 @@ Sau đó tải lại trang (F5).
       };
 
       window.speechSynthesis.onvoiceschanged = loadVoices;
+      
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => console.log("SW registered", reg))
+          .catch(err => console.error("SW registration failed", err));
+      }
     </script>
   </head>
 
